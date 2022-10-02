@@ -1,0 +1,24 @@
+name: "Telegram Uploader"
+description: "Upload files to Telegram"
+author: 'nikhilbadyal'
+inputs:
+  API_ID:
+    required: true
+    description: 'API ID from Telegram.'
+  API_HASH:
+    required: true
+    description: 'API Hash from Telegram.'
+  BOT_TOKEN:
+    required: true
+    description: 'Bot Token (Sender).'
+  CHAT_ID:
+    required: true
+    description: 'Chat to Send(Receiver).'
+
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
