@@ -16,6 +16,7 @@ BOT_TOKEN = os.getenv(
     "INPUT_BOT_TOKEN",
 )
 CHAT_ID: int = int(os.getenv("INPUT_CHAT_ID"))
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
 app: Client
 downloaded_files = []
 
@@ -38,7 +39,7 @@ def upload_to_tg(folder: str) -> None:
 
 def download_apk() -> None:
     downloader = Downloader
-    url = "https://api.github.com/repos/nikhilbadyal/docker-py-revanced/releases/latest"
+    url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
     response = requests.get(url).json()
     assets_from_api = response["assets"]
     assets: List[Tuple[Any, Any]] = []
