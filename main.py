@@ -17,6 +17,10 @@ BOT_TOKEN = os.getenv(
 )
 CHAT_ID: int = int(os.getenv("INPUT_CHAT_ID"))
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+default_sticker = (
+    "CAACAgUAAxkBAAEYpFpjOplSFK_q93KWoJKqWHGfgPMxMwACuAYAApqD2VV9UCzjLNawRCoE"
+)
+sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
 app: Client
 downloaded_files = []
 
@@ -35,6 +39,11 @@ def upload_to_tg(folder: str) -> None:
             app.send_document(chat_id=CHAT_ID, document=folder)
         else:
             logger.debug(f"Skipped {folder}")
+
+
+def send_sticker() -> None:
+    global app
+    app.send_sticker(chat_id=CHAT_ID, sticker=sticker_id)
 
 
 def download_apk() -> None:
@@ -67,6 +76,7 @@ def main() -> None:
     global app
     download_apk()
     initialize_telegram()
+    send_sticker()
     upload_to_tg(temp_folder)
 
 
