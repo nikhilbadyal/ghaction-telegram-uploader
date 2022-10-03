@@ -46,6 +46,11 @@ def send_sticker() -> None:
     app.send_sticker(chat_id=CHAT_ID, sticker=sticker_id)
 
 
+def send_message() -> None:
+    global app
+    app.send_message(chat_id=CHAT_ID, text="New Releas🥳")
+
+
 def download_apk() -> None:
     downloader = Downloader
     url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
@@ -77,6 +82,7 @@ def main() -> None:
     download_apk()
     initialize_telegram()
     send_sticker()
+    send_message()
     upload_to_tg(temp_folder)
 
 
