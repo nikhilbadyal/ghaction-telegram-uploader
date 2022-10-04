@@ -3,13 +3,13 @@ from pathlib import Path
 from queue import PriorityQueue
 from time import perf_counter
 from typing import Any, List, Tuple
-
+import os
 import requests
 from loguru import logger
 from requests import Session
 from tqdm import tqdm
 
-temp_folder = Path("/app/apks")
+temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
 
 
