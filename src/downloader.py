@@ -1,4 +1,5 @@
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from queue import PriorityQueue
@@ -13,6 +14,9 @@ from tqdm import tqdm
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+if not GITHUB_REPOSITORY:
+    logger.error("GITHUB_REPOSITORY not specified")
+    sys.exit(-1)
 repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
@@ -26,7 +30,9 @@ class Downloader:
     @classmethod
     async def initialize(cls):
         logger.debug("Fetching latest assets...")
+        print(repo_url)
         response = requests.get(repo_url).json()
+        print(response)
         self = cls(response)
         return self
 
