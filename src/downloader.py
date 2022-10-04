@@ -13,10 +13,7 @@ from tqdm import tqdm
 
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
-if not GITHUB_REPOSITORY:
-    logger.error("GITHUB_REPOSITORY not specified")
-    sys.exit(-1)
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY",'nikhilbadyal/docker-py-revanced')
 repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
@@ -31,7 +28,6 @@ class Downloader:
     async def initialize(cls):
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
-        print(response)
         self = cls(response)
         return self
 
@@ -49,6 +45,8 @@ class Downloader:
             unit_divisor=1024,
             colour="green",
         )
+        if not os.path.exists(temp_folder):
+            os.makedirs(temp_folder)
         with temp_folder.joinpath(file_name).open("wb") as dl_file, bar:
             for chunk in resp.iter_content(self._CHUNK_SIZE):
                 size = dl_file.write(chunk)
@@ -69,6 +67,6 @@ class Downloader:
             downloaded_files.append(str(temp_folder) + "/" + app_name)
             assets.append((asset_url, app_name))
         with ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(lambda repo: self.__download_assets(*repo), assets)
+            results = executor.map(lambda repo: self.__download_assets(*repo), assets)
         logger.info(f"Downloaded all assets {downloaded_files}")
         return downloaded_files
