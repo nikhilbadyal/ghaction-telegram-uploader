@@ -1,9 +1,10 @@
+import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from queue import PriorityQueue
 from time import perf_counter
 from typing import Any, List, Tuple
-import os
+
 import requests
 from loguru import logger
 from requests import Session
@@ -11,25 +12,27 @@ from tqdm import tqdm
 
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
 class Downloader:
     @classmethod
-    async def initialize(cls, url):
+    async def initialize(cls):
         self = cls()
         logger.debug("Fetching latest assets...")
-        self.url = url
+        self.url = repo_url
         self._CHUNK_SIZE = 2**21 * 5
         self._QUEUE = PriorityQueue()
         self._QUEUE_LENGTH = 0
-        self.response = requests.get(url).json()
+        self.response = requests.get(self.url).json()
         return self
 
-    def __download(self, url: str, file_name: str) -> None:
-        logger.debug(f"Trying to download {file_name} from {url}")
+    def __download(self, assets_url: str, file_name: str) -> None:
+        logger.debug(f"Trying to download {file_name} from {assets_url}")
         self._QUEUE_LENGTH += 1
         start = perf_counter()
-        resp = session.get(url, stream=True)
+        resp = session.get(assets_url, stream=True)
         total = int(resp.headers.get("content-length", 0))
         bar = tqdm(
             desc=file_name,
@@ -46,18 +49,18 @@ class Downloader:
         self._QUEUE.put((perf_counter() - start, file_name))
         logger.debug(f"Downloaded {file_name}")
 
-    def __download_assets(self, url: str, file_name: str) -> None:
-        self.__download(url, file_name=file_name)
+    def __download_assets(self, asset_url: str, file_name: str) -> None:
+        self.__download(asset_url, file_name=file_name)
 
     def download_latest(self) -> List:
         downloaded_files = []
         assets_from_api = self.response["assets"]
         assets: List[Tuple[Any, Any]] = []
         for asset in assets_from_api:
-            url = asset["browser_download_url"]
+            asset_url = asset["browser_download_url"]
             app_name = asset["name"]
             downloaded_files.append(str(temp_folder) + "/" + app_name)
-            assets.append((url, app_name))
+            assets.append((asset_url, app_name))
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(lambda repo: self.__download_assets(*repo), assets)
         logger.info(f"Downloaded all assets {downloaded_files}")
