@@ -10,33 +10,42 @@ default_sticker = (
 
 
 class Telegram:
+    def __init__(self, chat_id, app, sticker_id, downloaded_files):
+        self.chat_id = chat_id
+        self.app = app
+        self.sticker_id = sticker_id
+        self.downloaded_files = downloaded_files
+
     @classmethod
     async def initialize(cls, downloaded_files):
-        self = cls()
         logger.debug("Initializing Telegram connection...")
         try:
-            self.API_ID = os.getenv("INPUT_API_ID")
-            self.API_HASH = os.getenv(
+            api_id = os.getenv("INPUT_API_ID")
+            api_hash = os.getenv(
                 "INPUT_API_HASH",
             )
-            self.BOT_TOKEN = os.getenv(
+            bot_token = os.getenv(
                 "INPUT_BOT_TOKEN",
             )
-            self.CHAT_ID = int(os.getenv("INPUT_CHAT_ID"))
+            str_chat_id = os.getenv("INPUT_CHAT_ID", "")
+            if not str_chat_id:
+                raise TypeError("Missing Chat ID")
+            chat_id = int(str_chat_id)
+
+            app = Client(
+                "ghaction-telegram",
+                bot_token=bot_token,
+                api_id=api_id,
+                api_hash=api_hash,
+            )
+            sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
+            self = cls(chat_id, app, sticker_id, downloaded_files)
+            await self.app.start()
+            await self.app.get_chat(self.chat_id)
+            return self
         except TypeError as e:
             logger.error(f"Please provide all required inputs {e}")
             sys.exit(-1)
-        self.app = Client(
-            "ghaction-telegram",
-            bot_token=self.BOT_TOKEN,
-            api_id=self.API_ID,
-            api_hash=self.API_HASH,
-        )
-        self.downloaded_files = downloaded_files
-        self.sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
-        await self.app.start()
-        await self.app.get_chat(self.CHAT_ID)
-        return self
 
     async def __upload_to_tg(self, folder: str) -> None:
         if os.path.isdir(folder):
@@ -44,11 +53,11 @@ class Telegram:
             logger.debug(f"Found {directory_contents}")
             directory_contents.sort()
             for single_file in directory_contents:
-                self.upload_to_tg(os.path.join(folder, single_file))
+                await self.__upload_to_tg(os.path.join(folder, single_file))
         else:
             if folder in self.downloaded_files:
                 logger.debug(f"Uploading {folder}")
-                await self.app.send_document(chat_id=self.CHAT_ID, document=folder)
+                await self.app.send_document(chat_id=self.chat_id, document=folder)
             else:
                 logger.debug(f"Skipped {folder}")
 
@@ -58,7 +67,7 @@ class Telegram:
         await self.__upload_to_tg(folder)
 
     async def __send_sticker(self) -> None:
-        await self.app.send_sticker(chat_id=self.CHAT_ID, sticker=self.sticker_id)
+        await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
 
     async def __send_message(self) -> None:
-        await self.app.send_message(chat_id=self.CHAT_ID, text="New Release(s)🥳")
+        await self.app.send_message(chat_id=self.chat_id, text="New Release(s)🥳")

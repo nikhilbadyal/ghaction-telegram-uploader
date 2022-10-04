@@ -1,7 +1,7 @@
 import asyncio
 
 from src.downloader import Downloader, temp_folder
-from telegram import Telegram
+from src.telegram import Telegram
 
 
 async def main() -> None:

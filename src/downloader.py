@@ -17,15 +17,17 @@ repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
 class Downloader:
+    def __init__(self, response):
+        self._CHUNK_SIZE = 2**21 * 5
+        self._QUEUE: PriorityQueue[Tuple] = PriorityQueue()
+        self._QUEUE_LENGTH = 0
+        self.response = response
+
     @classmethod
     async def initialize(cls):
-        self = cls()
         logger.debug("Fetching latest assets...")
-        self.url = repo_url
-        self._CHUNK_SIZE = 2**21 * 5
-        self._QUEUE = PriorityQueue()
-        self._QUEUE_LENGTH = 0
-        self.response = requests.get(self.url).json()
+        response = requests.get(repo_url).json()
+        self = cls(response)
         return self
 
     def __download(self, assets_url: str, file_name: str) -> None:
