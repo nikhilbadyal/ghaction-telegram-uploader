@@ -17,7 +17,7 @@ class Downloader:
     @classmethod
     async def initialize(cls, url):
         self = cls()
-        logger.debug("Fetching latest...")
+        logger.debug("Fetching latest assets...")
         self.url = url
         self._CHUNK_SIZE = 2**21 * 5
         self._QUEUE = PriorityQueue()
@@ -60,5 +60,5 @@ class Downloader:
             assets.append((url, app_name))
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(lambda repo: self.__download_assets(*repo), assets)
-        logger.info(f"Downloaded all revanced apps {downloaded_files}")
+        logger.info(f"Downloaded all assets {downloaded_files}")
         return downloaded_files

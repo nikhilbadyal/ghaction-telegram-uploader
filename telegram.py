@@ -61,4 +61,4 @@ class Telegram:
         await self.app.send_sticker(chat_id=self.CHAT_ID, sticker=self.sticker_id)
 
     async def __send_message(self) -> None:
-        await self.app.send_message(chat_id=self.CHAT_ID, text="New Release🥳")
+        await self.app.send_message(chat_id=self.CHAT_ID, text="New Release(s)🥳")
