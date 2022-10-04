@@ -30,7 +30,6 @@ class Downloader:
     @classmethod
     async def initialize(cls):
         logger.debug("Fetching latest assets...")
-        print(repo_url)
         response = requests.get(repo_url).json()
         print(response)
         self = cls(response)
