@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  revanced:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: revanced
+    container_name: revanced
+    volumes:
+      - .:/app:z
