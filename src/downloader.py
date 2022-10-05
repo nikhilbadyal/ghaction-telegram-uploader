@@ -13,7 +13,10 @@ from tqdm import tqdm
 
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY",'nikhilbadyal/docker-py-revanced')
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+if not GITHUB_REPOSITORY:
+    logger.error("GITHUB_REPOSITORY not set")
+    sys.exit(-1)
 repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
@@ -67,6 +70,6 @@ class Downloader:
             downloaded_files.append(str(temp_folder) + "/" + app_name)
             assets.append((asset_url, app_name))
         with ThreadPoolExecutor(max_workers=5) as executor:
-            results = executor.map(lambda repo: self.__download_assets(*repo), assets)
+            executor.map(lambda repo: self.__download_assets(*repo), assets)
         logger.info(f"Downloaded all assets {downloaded_files}")
         return downloaded_files
