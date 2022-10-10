@@ -14,6 +14,9 @@ inputs:
   CHAT_ID:
     required: true
     description: 'Chat to Send(Receiver).'
+  STICKER_ID:
+    required: false
+    description: 'Sticker to Send'
 
 branding:
   icon: 'upload-cloud'
