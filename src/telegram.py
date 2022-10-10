@@ -39,6 +39,8 @@ class Telegram:
                 api_hash=api_hash,
             )
             sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
+            if not sticker_id or len(sticker_id) == 0:
+                sticker_id = default_sticker
             self = cls(chat_id, app, sticker_id, downloaded_files)
             await self.app.start()
             await self.app.get_chat(self.chat_id)
