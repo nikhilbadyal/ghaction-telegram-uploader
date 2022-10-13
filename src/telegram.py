@@ -1,3 +1,4 @@
+"""Telegram Bridge."""
 import os
 import sys
 
@@ -10,6 +11,8 @@ default_sticker = (
 
 
 class Telegram:
+    """Class to manage Telegram."""
+
     def __init__(self, chat_id, app, sticker_id, downloaded_files):
         self.chat_id = chat_id
         self.app = app
@@ -18,6 +21,11 @@ class Telegram:
 
     @classmethod
     async def initialize(cls, downloaded_files):
+        """Initialize Telegram Connection.
+
+        :param downloaded_files:
+        :return:
+        """
         logger.debug("Initializing Telegram connection...")
         try:
             api_id = os.getenv("INPUT_API_ID")
@@ -64,6 +72,10 @@ class Telegram:
                 logger.debug(f"Skipped {folder}")
 
     async def upload_latest(self, folder: str) -> None:
+        """Uploaded the latest assets to telegram.
+
+        :param folder: Folder where assets are stored
+        """
         await self.__send_sticker()
         await self.__send_message()
         await self.__upload_to_tg(folder)

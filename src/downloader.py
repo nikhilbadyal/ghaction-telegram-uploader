@@ -1,3 +1,4 @@
+"""Downloader."""
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -21,16 +22,25 @@ repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 
 
 class Downloader:
+    """Downloader."""
+
     def __init__(self, response):
-        self._CHUNK_SIZE = 2**21 * 5
+        self._CHUNK_SIZE = 10485760
         self._QUEUE: PriorityQueue[Tuple] = PriorityQueue()
         self._QUEUE_LENGTH = 0
         self.response = response
 
     @classmethod
     async def initialize(cls):
+        """
+        Fetch the Latest Release from GitHub
+        :return:
+        """
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
+        if response["message"] == "Not Found":
+            logger.info("No Release found exiting.")
+            sys.exit(0)
         self = cls(response)
         return self
 
@@ -61,6 +71,10 @@ class Downloader:
         self.__download(asset_url, file_name=file_name)
 
     def download_latest(self) -> List:
+        """
+        Download all latest assets
+        :return: List of downloaded assets
+        """
         downloaded_files = []
         assets_from_api = self.response["assets"]
         assets: List[Tuple[Any, Any]] = []
