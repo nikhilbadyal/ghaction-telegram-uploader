@@ -38,7 +38,7 @@ class Downloader:
         """
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
-        if response["message"] == "Not Found":
+        if response.get("message") == "Not Found":
             logger.info("No Release found exiting.")
             sys.exit(0)
         self = cls(response)
