@@ -13,17 +13,17 @@ default_sticker = (
 class Telegram:
     """Class to manage Telegram."""
 
-    def __init__(self, chat_id, app, sticker_id, downloaded_files):
+    def __init__(self, chat_id, app, sticker_id, downloader):
         self.chat_id = chat_id
         self.app = app
         self.sticker_id = sticker_id
-        self.downloaded_files = downloaded_files
+        self.downloader = downloader
 
     @classmethod
-    async def initialize(cls, downloaded_files):
+    async def initialize(cls, downloader):
         """Initialize Telegram Connection.
 
-        :param downloaded_files:
+        :param downloader: Downloader
         :return:
         """
         logger.debug("Initializing Telegram connection...")
@@ -49,9 +49,10 @@ class Telegram:
             sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
             if not sticker_id or len(sticker_id) == 0:
                 sticker_id = default_sticker
-            self = cls(chat_id, app, sticker_id, downloaded_files)
+            self = cls(chat_id, app, sticker_id, downloader)
             await self.app.start()
-            await self.app.get_chat(self.chat_id)
+            chat_info = await self.app.get_chat(self.chat_id)
+            self.chat_id = chat_info.id
             return self
         except TypeError as e:
             logger.error(f"Please provide all required inputs {e}")
@@ -65,7 +66,7 @@ class Telegram:
             for single_file in directory_contents:
                 await self.__upload_to_tg(os.path.join(folder, single_file))
         else:
-            if folder in self.downloaded_files:
+            if folder in self.downloader.downloaded_files:
                 logger.debug(f"Uploading {folder}")
                 await self.app.send_document(chat_id=self.chat_id, document=folder)
             else:
@@ -84,4 +85,11 @@ class Telegram:
         await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
 
     async def __send_message(self) -> None:
-        await self.app.send_message(chat_id=self.chat_id, text="New Release(s)🥳")
+        message = f"""
+        New Release(s)🥳
+
+        See Changelog [here]({self.downloader.changes})
+        """
+        await self.app.send_message(
+            chat_id=self.chat_id, text=message, disable_web_page_preview=True
+        )

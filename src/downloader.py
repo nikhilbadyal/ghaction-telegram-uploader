@@ -18,17 +18,25 @@ GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
 if not GITHUB_REPOSITORY:
     logger.error("GITHUB_REPOSITORY not set")
     sys.exit(-1)
+CHANGELOG_GITHUB_REPOSITORY = os.getenv(
+    "INPUT_CHANGELOG_GITHUB_REPOSITORY", GITHUB_REPOSITORY
+)
 repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
+changelog_url = (
+    f"https://api.github.com/repos/{CHANGELOG_GITHUB_REPOSITORY}/releases/latest"
+)
 
 
 class Downloader:
     """Downloader."""
 
-    def __init__(self, response):
+    def __init__(self, response, changes):
         self._CHUNK_SIZE = 10485760
         self._QUEUE: PriorityQueue[Tuple] = PriorityQueue()
         self._QUEUE_LENGTH = 0
         self.response = response
+        self.downloaded_files = []
+        self.changes = changes
 
     @classmethod
     async def initialize(cls):
@@ -38,10 +46,12 @@ class Downloader:
         """
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
+        changelog_response = requests.get(changelog_url).json()
         if response.get("message") == "Not Found":
             logger.info("No Release found exiting.")
             sys.exit(0)
-        self = cls(response)
+        changes = changelog_response.get("html_url")
+        self = cls(response, changes)
         return self
 
     def __download(self, assets_url: str, file_name: str) -> None:
@@ -70,20 +80,18 @@ class Downloader:
     def __download_assets(self, asset_url: str, file_name: str) -> None:
         self.__download(asset_url, file_name=file_name)
 
-    def download_latest(self) -> List:
+    def download_latest(self) -> None:
         """
         Download all latest assets
         :return: List of downloaded assets
         """
-        downloaded_files = []
         assets_from_api = self.response["assets"]
         assets: List[Tuple[Any, Any]] = []
         for asset in assets_from_api:
             asset_url = asset["browser_download_url"]
             app_name = asset["name"]
-            downloaded_files.append(str(temp_folder) + "/" + app_name)
+            self.downloaded_files.append(str(temp_folder) + "/" + app_name)
             assets.append((asset_url, app_name))
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(lambda repo: self.__download_assets(*repo), assets)
-        logger.info(f"Downloaded all assets {downloaded_files}")
-        return downloaded_files
+        logger.info(f"Downloaded all assets {self.downloaded_files}")

@@ -17,6 +17,9 @@ inputs:
   STICKER_ID:
     required: false
     description: 'Sticker to Send'
+  CHANGELOG_GITHUB_REPOSITORY:
+    required: false
+    description: 'Repo to Fetch Changelog'
 
 branding:
   icon: 'upload-cloud'
