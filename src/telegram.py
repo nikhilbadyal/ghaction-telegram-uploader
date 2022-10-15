@@ -90,6 +90,5 @@ class Telegram:
 
         See Changelog [here]({self.downloader.changes})
         """
-        await self.app.send_message(
-            chat_id=self.chat_id, text=message, disable_web_page_preview=True
-        )
+        logger.debug(f"{message} sent.")
+        await self.app.send_message(chat_id=self.chat_id, text=message)
