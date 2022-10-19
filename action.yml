@@ -20,7 +20,12 @@ inputs:
   CHANGELOG_GITHUB_REPOSITORY:
     required: false
     description: 'Repo to Fetch Changelog'
-
+  DOWNLOAD_GITHUB_REPOSITORY:
+    required: false
+    description: 'Repo to Download assets'
+  ASSETS_PATTERN:
+    required: false
+    description: 'Regex for Asset name match'
 branding:
   icon: 'upload-cloud'
   color: 'blue'

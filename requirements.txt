@@ -4,3 +4,4 @@ pre-commit==2.20.0
 tqdm==4.64.1
 loguru==0.6.0
 TgCrypto==1.2.4
+environs==9.5.0

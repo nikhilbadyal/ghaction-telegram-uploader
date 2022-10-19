@@ -1,5 +1,6 @@
 """Downloader."""
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -12,12 +13,13 @@ from loguru import logger
 from requests import Session
 from tqdm import tqdm
 
+from src.config import UploaderConfig
+
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
-if not GITHUB_REPOSITORY:
-    logger.error("GITHUB_REPOSITORY not set")
-    sys.exit(-1)
+GITHUB_REPOSITORY = os.getenv(
+    "INPUT_DOWNLOAD_GITHUB_REPOSITORY", os.getenv("GITHUB_REPOSITORY")
+)
 CHANGELOG_GITHUB_REPOSITORY = os.getenv(
     "INPUT_CHANGELOG_GITHUB_REPOSITORY", GITHUB_REPOSITORY
 )
@@ -80,18 +82,25 @@ class Downloader:
     def __download_assets(self, asset_url: str, file_name: str) -> None:
         self.__download(asset_url, file_name=file_name)
 
-    def download_latest(self) -> None:
+    def download_latest(self, config: UploaderConfig) -> None:
         """
         Download all latest assets
         :return: List of downloaded assets
         """
         assets_from_api = self.response["assets"]
-        assets: List[Tuple[Any, Any]] = []
+        matched_assets: List[Tuple[Any, Any]] = []
+        all_assets: List[Tuple[Any, Any]] = []
         for asset in assets_from_api:
             asset_url = asset["browser_download_url"]
             app_name = asset["name"]
-            self.downloaded_files.append(str(temp_folder) + "/" + app_name)
-            assets.append((asset_url, app_name))
+            all_assets.append((asset_url, app_name))
+        for asset in all_assets:
+            if re.search(config.assets_pattern, asset[1]):
+                self.downloaded_files.append(str(temp_folder) + "/" + asset[1])
+                matched_assets.append(asset)
+                logger.info(f"{asset[1]} matched.")
+            else:
+                logger.debug(f"Skipping {asset[1]}.")
         with ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(lambda repo: self.__download_assets(*repo), assets)
+            executor.map(lambda repo: self.__download_assets(*repo), matched_assets)
         logger.info(f"Downloaded all assets {self.downloaded_files}")
