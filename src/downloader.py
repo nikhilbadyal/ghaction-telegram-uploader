@@ -50,7 +50,7 @@ class Downloader:
         response = requests.get(repo_url).json()
         changelog_response = requests.get(changelog_url).json()
         if response.get("message") == "Not Found":
-            logger.info("No Release found exiting.")
+            logger.info(f"No Release found in {repo_url}. Exiting.")
             sys.exit(0)
         changes = changelog_response.get("html_url")
         self = cls(response, changes)
