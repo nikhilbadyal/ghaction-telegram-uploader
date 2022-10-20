@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from queue import PriorityQueue
 from time import perf_counter
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import requests
 from loguru import logger
@@ -33,16 +33,16 @@ changelog_url = (
 class Downloader:
     """Downloader."""
 
-    def __init__(self, response, changes):
+    def __init__(self, response: Dict[Any, Any], changes: str):
         self._CHUNK_SIZE = 10485760
-        self._QUEUE: PriorityQueue[Tuple] = PriorityQueue()
+        self._QUEUE: PriorityQueue[Tuple[float, str]] = PriorityQueue()
         self._QUEUE_LENGTH = 0
         self.response = response
-        self.downloaded_files = []
+        self.downloaded_files: List[str] = []
         self.changes = changes
 
     @classmethod
-    async def initialize(cls):
+    async def initialize(cls) -> "Downloader":
         """
         Fetch the Latest Release from GitHub
         :return:

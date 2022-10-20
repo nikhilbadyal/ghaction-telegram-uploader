@@ -1,9 +1,13 @@
 """Telegram Bridge."""
 import os
 import sys
+from typing import Any
 
 from loguru import logger
 from pyrogram import Client
+
+from src.config import UploaderConfig
+from src.downloader import Downloader
 
 default_sticker = (
     "CAACAgUAAxkBAAEYpFpjOplSFK_q93KWoJKqWHGfgPMxMwACuAYAApqD2VV9UCzjLNawRCoE"
@@ -13,17 +17,31 @@ default_sticker = (
 class Telegram:
     """Class to manage Telegram."""
 
-    def __init__(self, chat_id, app, sticker_id, downloader):
+    # noinspection IncorrectFormatting
+    def __init__(
+        self,
+        chat_id: int,
+        app: Client,
+        sticker_id: str,
+        downloader: Downloader,
+        config: UploaderConfig,
+    ):
         self.chat_id = chat_id
         self.app = app
         self.sticker_id = sticker_id
         self.downloader = downloader
+        self.config = config
 
+    # noinspection IncorrectFormatting
     @classmethod
-    async def initialize(cls, downloader):
+    async def initialize(
+        cls, downloader: Downloader, config: UploaderConfig
+    ) -> "Telegram":
         """Initialize Telegram Connection.
 
-        :param downloader: Downloader
+        Args:
+            config: Environment variables
+            downloader: Downloader
         :return:
         """
         logger.debug("Initializing Telegram connection...")
@@ -49,7 +67,7 @@ class Telegram:
             sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
             if not sticker_id or len(sticker_id) == 0:
                 sticker_id = default_sticker
-            self = cls(chat_id, app, sticker_id, downloader)
+            self = cls(chat_id, app, sticker_id, downloader, config)
             await self.app.start()
             chat_info = await self.app.get_chat(self.chat_id)
             self.chat_id = chat_info.id
@@ -72,7 +90,7 @@ class Telegram:
             else:
                 logger.debug(f"Skipped {folder}")
 
-    async def upload_latest(self, folder: str) -> None:
+    async def upload_latest(self, folder: Any) -> None:
         """Uploaded the latest assets to telegram.
 
         :param folder: Folder where assets are stored
@@ -85,10 +103,14 @@ class Telegram:
         await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
 
     async def __send_message(self) -> None:
-        message = f"""
-        New Release(s)🥳
+        if self.config.send_message:
+            if self.config.message and self.config.message != "":
+                message = self.config.message
+            else:
+                message = f"""
+                New Release(s)🥳
 
-        See Changelog [here]({self.downloader.changes})
-        """
-        logger.debug(f"{message} sent.")
-        await self.app.send_message(chat_id=self.chat_id, text=message)
+                See Changelog [here]({self.downloader.changes})
+                """
+            logger.debug(f"{message} sent.")
+            await self.app.send_message(chat_id=self.chat_id, text=message)
