@@ -100,7 +100,8 @@ class Telegram:
         await self.__upload_to_tg(folder)
 
     async def __send_sticker(self) -> None:
-        await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
+        if self.config.send_sticker:
+            await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
 
     async def __send_message(self) -> None:
         if self.config.send_message:
