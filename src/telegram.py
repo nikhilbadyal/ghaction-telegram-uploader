@@ -110,8 +110,6 @@ class Telegram:
             else:
                 message = f"""
                 New Release(s)🥳
-
-                See Changelog [here]({self.downloader.changes})
+See Changelog [here]({self.downloader.changes})
                 """
-            logger.debug(f"{message} sent.")
             await self.app.send_message(chat_id=self.chat_id, text=message)

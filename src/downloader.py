@@ -18,7 +18,6 @@ from src.config import UploaderConfig
 temp_folder = Path(f"{os.getcwd()}/apks")
 session = Session()
 GITHUB_REPOSITORY = os.getenv("INPUT_DOWNLOAD_GITHUB_REPOSITORY", None)
-print(os.environ)
 if not GITHUB_REPOSITORY:
     GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
 CHANGELOG_GITHUB_REPOSITORY = os.getenv(
