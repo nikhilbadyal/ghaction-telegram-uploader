@@ -76,6 +76,10 @@ class Telegram:
             logger.error(f"Please provide all required inputs {e}")
             sys.exit(-1)
 
+    async def progress(self, current: Any, total: Any) -> None:
+        """Report upload progress."""
+        logger.debug(f"{current * 100 / total:.1f}%")
+
     async def __upload_to_tg(self, folder: str) -> None:
         if os.path.isdir(folder):
             directory_contents = os.listdir(folder)
@@ -86,7 +90,13 @@ class Telegram:
         else:
             if folder in self.downloader.downloaded_files:
                 logger.debug(f"Uploading {folder}")
-                await self.app.send_document(chat_id=self.chat_id, document=folder)
+                await self.app.send_document(
+                    chat_id=self.chat_id,
+                    document=folder,
+                    disable_notification=True,
+                    caption=folder,
+                    progress=self.progress,
+                )
             else:
                 logger.debug(f"Skipped {folder}")
 
@@ -101,7 +111,9 @@ class Telegram:
 
     async def __send_sticker(self) -> None:
         if self.config.send_sticker:
-            await self.app.send_sticker(chat_id=self.chat_id, sticker=self.sticker_id)
+            await self.app.send_sticker(
+                chat_id=self.chat_id, sticker=self.sticker_id, disable_notification=True
+            )
 
     async def __send_message(self) -> None:
         if self.config.send_message:
