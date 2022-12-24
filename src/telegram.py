@@ -94,7 +94,7 @@ class Telegram:
                     chat_id=self.chat_id,
                     document=folder,
                     disable_notification=True,
-                    caption=folder,
+                    caption=f"`{os.path.basename(folder)}`",
                     progress=self.progress,
                 )
             else:
