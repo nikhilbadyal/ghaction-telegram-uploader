@@ -48,6 +48,7 @@ class Downloader:
         """
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
+        logger.debug(f"Got {response} from GitHub Fetching")
         changelog_response = requests.get(changelog_url).json()
         if response.get("message") == "Not Found":
             logger.info(f"No Release found in {repo_url}. Exiting.")
