@@ -42,10 +42,7 @@ class Downloader:
 
     @classmethod
     async def initialize(cls) -> "Downloader":
-        """
-        Fetch the Latest Release from GitHub
-        :return:
-        """
+        """Fetch the Latest Release from GitHub :return:"""
         logger.debug("Fetching latest assets...")
         response = requests.get(repo_url).json()
         logger.debug(f"Got {response} from GitHub Fetching")
@@ -84,10 +81,7 @@ class Downloader:
         self.__download(asset_url, file_name=file_name)
 
     def download_latest(self, config: UploaderConfig) -> None:
-        """
-        Download all latest assets
-        :return: List of downloaded assets
-        """
+        """Download all latest assets :return: List of downloaded assets."""
         assets_from_api = self.response["assets"]
         matched_assets: List[Tuple[Any, Any]] = []
         all_assets: List[Tuple[Any, Any]] = []
