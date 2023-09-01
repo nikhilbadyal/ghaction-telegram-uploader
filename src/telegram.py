@@ -75,7 +75,7 @@ class Telegram(object):
             logger.debug(f"Skipped {folder}")
 
     async def upload_latest(self: Self, folder: Any) -> None:
-        """Uploaded the latest assets to telegram.
+        """Upload the latest assets to telegram.
 
         :param folder: Folder where assets are stored
         """

@@ -26,7 +26,7 @@ class Downloader(object):
         self.response = response
         self.downloaded_files: List[str] = []
         self.changes = changes
-        self.config = UploaderConfig
+        self.config = config
 
     @classmethod
     async def initialize(cls, config: UploaderConfig) -> Self:
