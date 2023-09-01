@@ -1,0 +1,35 @@
+version: 2
+updates:
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - dependencies🫂
+    assignees:
+      - "nikhilbadyal"
+    reviewers:
+      - "nikhilbadyal"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - dependencies🫂
+    assignees:
+      - "nikhilbadyal"
+    reviewers:
+      - "nikhilbadyal"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - dependencies🫂
+    assignees:
+      - "nikhilbadyal"
+    reviewers:
+        - "nikhilbadyal"

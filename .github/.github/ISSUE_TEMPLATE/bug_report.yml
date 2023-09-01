@@ -1,0 +1,24 @@
+name: Bug Report
+description: Encountered some issue while using?
+labels:
+  - "bug🐞"
+assignees:
+  - nikhilbadyal
+
+body:
+
+  - type: textarea
+    attributes:
+      label: Error log or link to the logs if using Github Action
+      description: |
+        Please provide the error log or Github Action URL if building on GitHub
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional info
+      description: |
+        Please provide any additional information that seems useful.
+    validations:
+      required: true
