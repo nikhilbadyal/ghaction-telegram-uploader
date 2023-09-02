@@ -1,6 +1,5 @@
 """Telegram Bridge."""
 import os
-import sys
 from pathlib import Path
 from typing import Any, Self
 
@@ -9,6 +8,7 @@ from pyrogram import Client
 
 from src.config import UploaderConfig
 from src.downloader import Downloader
+from src.strings import initializing_connection, uploading
 
 
 class Telegram(object):
@@ -35,21 +35,16 @@ class Telegram(object):
             downloader: Downloader
         :return:
         """
-        logger.debug("Initializing Telegram connection...")
-        try:
-            app = Client(
-                "ghaction-telegram",
-                bot_token=config.bot_token,
-                api_id=config.api_id,
-                api_hash=config.api_hash,
-            )
-            self = cls(app, downloader, config)
-            await self.app.start()
-        except TypeError as e:
-            logger.error(f"Please provide all required inputs {e}")
-            sys.exit(-1)
-        else:
-            return self
+        logger.debug(initializing_connection)
+        app = Client(
+            "ghaction-telegram",
+            bot_token=config.bot_token,
+            api_id=config.api_id,
+            api_hash=config.api_hash,
+        )
+        self = cls(app, downloader, config)
+        await self.app.start()
+        return self
 
     async def progress(self: Self, current: Any, total: Any) -> None:
         """Report upload progress."""
@@ -58,12 +53,11 @@ class Telegram(object):
     async def __upload_to_tg(self: Self, folder: str) -> None:
         if Path(folder).is_dir():
             directory_contents = os.listdir(folder)
-            logger.debug(f"Found {directory_contents}")
             directory_contents.sort()
             for single_file in directory_contents:
                 await self.__upload_to_tg(os.path.join(folder, single_file))
         elif folder in self.downloader.downloaded_files:
-            logger.debug(f"Uploading {folder}")
+            logger.debug(uploading.format(folder))
             await self.app.send_document(
                 chat_id=self.config.chat_id,
                 document=folder,
@@ -71,8 +65,6 @@ class Telegram(object):
                 caption=f"`{Path(folder).name}`",
                 progress=self.progress,
             )
-        else:
-            logger.debug(f"Skipped {folder}")
 
     async def upload_latest(self: Self, folder: Any) -> None:
         """Upload the latest assets to telegram.

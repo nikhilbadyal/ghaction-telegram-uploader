@@ -13,7 +13,14 @@ from tqdm import tqdm
 
 from src.config import UploaderConfig, session
 from src.constant import REQUEST_TIMEOUT, temp_folder
-from src.strings import download_done, download_string
+from src.strings import (
+    download_done,
+    download_string,
+    downloaded_all,
+    fetching_assets,
+    no_release_found,
+    skipping_asset,
+)
 
 
 class Downloader(object):
@@ -31,12 +38,11 @@ class Downloader(object):
     @classmethod
     async def initialize(cls, config: UploaderConfig) -> Self:
         """Fetch the Latest Release from GitHub."""
-        logger.debug("Fetching latest assets...")
+        logger.debug(fetching_assets)
         response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT).json()
-        logger.debug(f"Got {response} from GitHub Fetching")
         changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
         if response.get("message") == "Not Found":
-            logger.info(f"No Release found in {config.repo_url}. Exiting.")
+            logger.info(no_release_found.format(config.repo_url))
             sys.exit(0)
         changes = changelog_response.get("html_url")
         return cls(response, changes, config)
@@ -80,9 +86,8 @@ class Downloader(object):
             if re.search(config.assets_pattern, asset[1]):
                 self.downloaded_files.append(str(temp_folder) + "/" + asset[1])
                 matched_assets.append(asset)
-                logger.info(f"{asset[1]} matched.")
             else:
-                logger.debug(f"Skipping {asset[1]}.")
+                logger.debug(skipping_asset.format({asset[1]}))
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(lambda repo: self.__download_assets(*repo), matched_assets)
-        logger.info(f"Downloaded all assets {self.downloaded_files}")
+        logger.info(downloaded_all.format(self.downloaded_files))
