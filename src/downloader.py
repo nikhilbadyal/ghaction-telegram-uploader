@@ -41,10 +41,12 @@ class Downloader(object):
     async def initialize(cls, config: UploaderConfig) -> Self:
         """Fetch the Latest Release from GitHub."""
         logger.debug(fetching_assets)
-        response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT).json()
+        response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT)
         handle_request_response(response, config.repo_url)
-        changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
+        response = response.json()
+        changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT)
         handle_request_response(changelog_response, config.changelog_url)
+        changelog_response = changelog_response.json()
         if response.get("message") == not_found:
             logger.info(no_release_found.format(config.repo_url))
             sys.exit(0)
