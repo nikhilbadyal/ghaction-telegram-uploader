@@ -1,7 +1,6 @@
 """Downloader."""
 import asyncio
 import re
-import sys
 from queue import PriorityQueue
 from time import perf_counter
 from typing import Any, Dict, List, Self, Tuple
@@ -13,7 +12,7 @@ from tqdm import tqdm
 
 from src.config import UploaderConfig
 from src.constant import REQUEST_TIMEOUT, temp_folder
-from src.exception import DownloadError
+from src.exception import DownloadError, ReleaseNotFoundError
 from src.strings import downloaded_all, fetching_assets, no_release_found, no_url, not_found, skipping_asset
 
 
@@ -73,11 +72,11 @@ class Downloader(object):
         """Fetch the Latest Release from GitHub."""
         logger.debug(fetching_assets)
         async with aiohttp.ClientSession() as session:
-            response_json = await Downloader.fetch_json(session, config.repo_url)
-            changelog_response_json = await Downloader.fetch_json(session, config.changelog_url)
+            response_json, changelog_response_json = await asyncio.gather(
+                Downloader.fetch_json(session, config.repo_url), Downloader.fetch_json(session, config.changelog_url)
+            )
             if response_json.get("message") == not_found:
-                logger.info(no_release_found.format(config.repo_url))
-                sys.exit(0)
+                raise ReleaseNotFoundError(no_release_found, url=config.repo_url)
             changes = changelog_response_json.get("html_url")
             return cls(response_json, changes, config)
 
