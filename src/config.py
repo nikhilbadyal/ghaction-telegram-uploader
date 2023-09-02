@@ -27,3 +27,8 @@ class UploaderConfig(object):
         self.CHANGELOG_GITHUB_REPOSITORY = env.str("INPUT_CHANGELOG_GITHUB_REPOSITORY", self.GITHUB_REPOSITORY)
         self.repo_url = f"https://api.github.com/repos/{self.GITHUB_REPOSITORY}/releases/latest"
         self.changelog_url = f"https://api.github.com/repos/{self.CHANGELOG_GITHUB_REPOSITORY}/releases/latest"
+
+    def __str__(self: Self) -> str:
+        """Returns the str representation of the app."""
+        attrs = vars(self)
+        return ", ".join([f"{key}: {value}" for key, value in attrs.items()])

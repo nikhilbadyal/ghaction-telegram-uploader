@@ -98,3 +98,8 @@ class Downloader(object):
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(lambda repo: self.__download_assets(*repo), matched_assets)
         logger.info(downloaded_all.format(self.downloaded_files))
+
+    def __str__(self: Self) -> str:
+        """Returns the str representation of the app."""
+        attrs = vars(self)
+        return ", ".join([f"{key}: {value}" for key, value in attrs.items()])
