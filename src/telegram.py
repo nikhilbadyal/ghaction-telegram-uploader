@@ -7,7 +7,7 @@ from loguru import logger
 from pyrogram import Client
 
 from src.config import UploaderConfig
-from src.downloader import Downloader
+from src.downloader.download import Downloader
 from src.strings import initializing_connection, project_name, uploading
 
 

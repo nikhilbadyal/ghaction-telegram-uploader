@@ -5,7 +5,7 @@ from environs import Env
 
 from src.config import UploaderConfig
 from src.constant import temp_folder
-from src.downloader import Downloader
+from src.downloader.download import Downloader
 from src.telegram import Telegram
 
 
