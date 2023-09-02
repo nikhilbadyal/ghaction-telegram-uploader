@@ -31,3 +31,24 @@ class RequestError(UploaderError):
         """
         super().__init__(*args)
         self.url = kwargs.get("url", None)
+
+
+class DownloadError(UploaderError):
+    """Generic Download failure."""
+
+    def __init__(self: Self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the DownloadFailure exception.
+
+        Args:
+        ----
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+                url (str, optional): The URL of the failed icon scraping. Defaults to None.
+        """
+        super().__init__(*args)
+        self.url = kwargs.get("url", None)
+
+    def __str__(self: Self) -> str:
+        """Exception message."""
+        base_message = super().__str__()
+        return f"Message - {base_message} Url - {self.url}"

@@ -2,7 +2,6 @@
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 from queue import PriorityQueue
 from time import perf_counter
 from typing import Any, Dict, List, Self, Tuple
@@ -11,17 +10,10 @@ import requests
 from loguru import logger
 from tqdm import tqdm
 
-from src.config import UploaderConfig, session
+from src.config import UploaderConfig
 from src.constant import REQUEST_TIMEOUT, temp_folder
-from src.strings import (
-    download_done,
-    download_string,
-    downloaded_all,
-    fetching_assets,
-    no_release_found,
-    not_found,
-    skipping_asset,
-)
+from src.exception import DownloadError
+from src.strings import downloaded_all, fetching_assets, no_release_found, no_url, not_found, skipping_asset
 from src.utils import handle_request_response
 
 
@@ -36,6 +28,34 @@ class Downloader(object):
         self.downloaded_files: List[str] = []
         self.changes = changes
         self.config = config
+
+    def _download(self: Self, url: str, file_name: str) -> None:
+        if not url:
+            raise DownloadError(no_url)
+        logger.info(f"Trying to download {file_name} from {url}")
+        self._QUEUE_LENGTH += 1
+        start = perf_counter()
+        headers = {}
+        if self.config.personal_access_token and "github" in url:
+            logger.debug("Using personal access token")
+            headers["Authorization"] = f"token {self.config.personal_access_token}"
+        response = requests.get(url, stream=True, headers=headers, timeout=REQUEST_TIMEOUT)
+        handle_request_response(response, url)
+        total = int(response.headers.get("content-length", 0))
+        bar = tqdm(
+            desc=file_name,
+            total=total,
+            unit="iB",
+            unit_scale=True,
+            unit_divisor=1024,
+            colour="green",
+        )
+        with self.config.temp_folder.joinpath(file_name).open("wb") as dl_file, bar:
+            for chunk in response.iter_content(self._CHUNK_SIZE):
+                size = dl_file.write(chunk)
+                bar.update(size)
+        self._QUEUE.put((perf_counter() - start, file_name))
+        logger.debug(f"Downloaded {file_name}")
 
     @classmethod
     async def initialize(cls, config: UploaderConfig) -> Self:
@@ -53,32 +73,8 @@ class Downloader(object):
         changes = changelog_response_json.get("html_url")
         return cls(response_json, changes, config)
 
-    def __download(self: Self, assets_url: str, file_name: str) -> None:
-        logger.debug(download_string.format(file_name, assets_url))
-        self._QUEUE_LENGTH += 1
-        start = perf_counter()
-        resp = session.get(assets_url, stream=True)
-        handle_request_response(resp, assets_url)
-        total = int(resp.headers.get("content-length", 0))
-        bar = tqdm(
-            desc=file_name,
-            total=total,
-            unit="iB",
-            unit_scale=True,
-            unit_divisor=1024,
-            colour="green",
-        )
-        if not Path(temp_folder).exists():
-            Path(temp_folder).mkdir(parents=True)
-        with temp_folder.joinpath(file_name).open("wb") as dl_file, bar:
-            for chunk in resp.iter_content(self._CHUNK_SIZE):
-                size = dl_file.write(chunk)
-                bar.update(size)
-        self._QUEUE.put((perf_counter() - start, file_name))
-        logger.debug(download_done.format(file_name))
-
     def __download_assets(self: Self, asset_url: str, file_name: str) -> None:
-        self.__download(asset_url, file_name=file_name)
+        self._download(asset_url, file_name=file_name)
 
     def download_latest(self: Self, config: UploaderConfig) -> None:
         """Download all latest assets :return: List of downloaded assets."""

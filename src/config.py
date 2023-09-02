@@ -1,4 +1,5 @@
 """Env Configurations."""
+from pathlib import Path
 from typing import Self
 
 from environs import Env
@@ -27,6 +28,9 @@ class UploaderConfig(object):
         self.CHANGELOG_GITHUB_REPOSITORY = env.str("INPUT_CHANGELOG_GITHUB_REPOSITORY", self.GITHUB_REPOSITORY)
         self.repo_url = f"https://api.github.com/repos/{self.GITHUB_REPOSITORY}/releases/latest"
         self.changelog_url = f"https://api.github.com/repos/{self.CHANGELOG_GITHUB_REPOSITORY}/releases/latest"
+        self.personal_access_token = env.str("INPUT_PERSONAL_ACCESS_TOKEN", None)
+        self.temp_folder_name = "apks"
+        self.temp_folder = Path(self.temp_folder_name)
 
     def __str__(self: Self) -> str:
         """Returns the str representation of the app."""
