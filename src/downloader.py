@@ -19,8 +19,10 @@ from src.strings import (
     downloaded_all,
     fetching_assets,
     no_release_found,
+    not_found,
     skipping_asset,
 )
+from src.utils import handle_request_response
 
 
 class Downloader(object):
@@ -40,8 +42,10 @@ class Downloader(object):
         """Fetch the Latest Release from GitHub."""
         logger.debug(fetching_assets)
         response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT).json()
+        handle_request_response(response, config.repo_url)
         changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
-        if response.get("message") == "Not Found":
+        handle_request_response(changelog_response, config.changelog_url)
+        if response.get("message") == not_found:
             logger.info(no_release_found.format(config.repo_url))
             sys.exit(0)
         changes = changelog_response.get("html_url")
@@ -52,6 +56,7 @@ class Downloader(object):
         self._QUEUE_LENGTH += 1
         start = perf_counter()
         resp = session.get(assets_url, stream=True)
+        handle_request_response(resp, assets_url)
         total = int(resp.headers.get("content-length", 0))
         bar = tqdm(
             desc=file_name,

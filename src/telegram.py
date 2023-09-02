@@ -57,7 +57,7 @@ class Telegram(object):
             for single_file in directory_contents:
                 await self.__upload_to_tg(os.path.join(folder, single_file))
         elif folder in self.downloader.downloaded_files:
-            logger.debug(uploading.format(folder))
+            logger.debug(uploading.format(Path(folder).name))
             await self.app.send_document(
                 chat_id=self.config.chat_id,
                 document=folder,
