@@ -8,7 +8,7 @@ from pyrogram import Client
 
 from src.config import UploaderConfig
 from src.downloader import Downloader
-from src.strings import initializing_connection, uploading
+from src.strings import initializing_connection, uploading, project_name
 
 
 class Telegram(object):
@@ -37,7 +37,7 @@ class Telegram(object):
         """
         logger.debug(initializing_connection)
         app = Client(
-            "ghaction-telegram",
+            project_name,
             bot_token=config.bot_token,
             api_id=config.api_id,
             api_hash=config.api_hash,
