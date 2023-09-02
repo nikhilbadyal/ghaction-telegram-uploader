@@ -15,7 +15,7 @@ async def main() -> None:
     env.read_env(".env")
     config = UploaderConfig(env)
     downloader = await Downloader.initialize(config)
-    downloader.download_latest(config)
+    await downloader.download_latest(config)
     telegram = await Telegram.initialize(downloader, config)
     await telegram.upload_latest(temp_folder)
 
