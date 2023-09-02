@@ -5,3 +5,4 @@ venv
 *.session
 *.pyc
 .idea
+apks/**
