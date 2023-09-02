@@ -43,15 +43,15 @@ class Downloader(object):
         logger.debug(fetching_assets)
         response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT)
         handle_request_response(response, config.repo_url)
-        response = response.json()
+        response_json = response.json()
         changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT)
         handle_request_response(changelog_response, config.changelog_url)
-        changelog_response = changelog_response.json()
-        if response.get("message") == not_found:
+        changelog_response_json = changelog_response.json()
+        if response_json.get("message") == not_found:
             logger.info(no_release_found.format(config.repo_url))
             sys.exit(0)
-        changes = changelog_response.get("html_url")
-        return cls(response, changes, config)
+        changes = changelog_response_json.get("html_url")
+        return cls(response_json, changes, config)
 
     def __download(self: Self, assets_url: str, file_name: str) -> None:
         logger.debug(download_string.format(file_name, assets_url))

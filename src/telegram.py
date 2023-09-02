@@ -8,7 +8,7 @@ from pyrogram import Client
 
 from src.config import UploaderConfig
 from src.downloader import Downloader
-from src.strings import initializing_connection, uploading, project_name
+from src.strings import initializing_connection, project_name, uploading
 
 
 class Telegram(object):

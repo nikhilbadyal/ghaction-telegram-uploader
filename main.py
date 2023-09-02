@@ -20,4 +20,5 @@ async def main() -> None:
     await telegram.upload_latest(temp_folder)
 
 
-asyncio.run(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
