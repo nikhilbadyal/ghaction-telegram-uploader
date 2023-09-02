@@ -1,61 +1,48 @@
 """Downloader."""
-import os
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from queue import PriorityQueue
 from time import perf_counter
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Self, Tuple
 
 import requests
 from loguru import logger
-from requests import Session
 from tqdm import tqdm
 
-from src.config import UploaderConfig
-
-temp_folder = Path(f"{os.getcwd()}/apks")
-session = Session()
-GITHUB_REPOSITORY = os.getenv("INPUT_DOWNLOAD_GITHUB_REPOSITORY", None)
-if not GITHUB_REPOSITORY:
-    GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
-CHANGELOG_GITHUB_REPOSITORY = os.getenv(
-    "INPUT_CHANGELOG_GITHUB_REPOSITORY", GITHUB_REPOSITORY
-)
-repo_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
-changelog_url = (
-    f"https://api.github.com/repos/{CHANGELOG_GITHUB_REPOSITORY}/releases/latest"
-)
+from src.config import UploaderConfig, session
+from src.constant import REQUEST_TIMEOUT, temp_folder
+from src.strings import download_done, download_string
 
 
-class Downloader:
+class Downloader(object):
     """Downloader."""
 
-    def __init__(self, response: Dict[Any, Any], changes: str):
+    def __init__(self: Self, response: Dict[Any, Any], changes: str, config: UploaderConfig) -> None:
         self._CHUNK_SIZE = 10485760
         self._QUEUE: PriorityQueue[Tuple[float, str]] = PriorityQueue()
         self._QUEUE_LENGTH = 0
         self.response = response
         self.downloaded_files: List[str] = []
         self.changes = changes
+        self.config = config
 
     @classmethod
-    async def initialize(cls) -> "Downloader":
-        """Fetch the Latest Release from GitHub :return:"""
+    async def initialize(cls, config: UploaderConfig) -> Self:
+        """Fetch the Latest Release from GitHub."""
         logger.debug("Fetching latest assets...")
-        response = requests.get(repo_url).json()
+        response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT).json()
         logger.debug(f"Got {response} from GitHub Fetching")
-        changelog_response = requests.get(changelog_url).json()
+        changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
         if response.get("message") == "Not Found":
-            logger.info(f"No Release found in {repo_url}. Exiting.")
+            logger.info(f"No Release found in {config.repo_url}. Exiting.")
             sys.exit(0)
         changes = changelog_response.get("html_url")
-        self = cls(response, changes)
-        return self
+        return cls(response, changes, config)
 
-    def __download(self, assets_url: str, file_name: str) -> None:
-        logger.debug(f"Trying to download {file_name} from {assets_url}")
+    def __download(self: Self, assets_url: str, file_name: str) -> None:
+        logger.debug(download_string.format(file_name, assets_url))
         self._QUEUE_LENGTH += 1
         start = perf_counter()
         resp = session.get(assets_url, stream=True)
@@ -68,19 +55,19 @@ class Downloader:
             unit_divisor=1024,
             colour="green",
         )
-        if not os.path.exists(temp_folder):
-            os.makedirs(temp_folder)
+        if not Path(temp_folder).exists():
+            Path(temp_folder).mkdir(parents=True)
         with temp_folder.joinpath(file_name).open("wb") as dl_file, bar:
             for chunk in resp.iter_content(self._CHUNK_SIZE):
                 size = dl_file.write(chunk)
                 bar.update(size)
         self._QUEUE.put((perf_counter() - start, file_name))
-        logger.debug(f"Downloaded {file_name}")
+        logger.debug(download_done.format(file_name))
 
-    def __download_assets(self, asset_url: str, file_name: str) -> None:
+    def __download_assets(self: Self, asset_url: str, file_name: str) -> None:
         self.__download(asset_url, file_name=file_name)
 
-    def download_latest(self, config: UploaderConfig) -> None:
+    def download_latest(self: Self, config: UploaderConfig) -> None:
         """Download all latest assets :return: List of downloaded assets."""
         assets_from_api = self.response["assets"]
         matched_assets: List[Tuple[Any, Any]] = []

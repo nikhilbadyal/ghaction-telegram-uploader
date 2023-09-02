@@ -4,3 +4,4 @@
 venv
 *.session
 *.pyc
+.idea

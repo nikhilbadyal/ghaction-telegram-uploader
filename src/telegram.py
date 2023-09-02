@@ -1,7 +1,8 @@
 """Telegram Bridge."""
 import os
 import sys
-from typing import Any
+from pathlib import Path
+from typing import Any, Self
 
 from loguru import logger
 from pyrogram import Client
@@ -9,34 +10,24 @@ from pyrogram import Client
 from src.config import UploaderConfig
 from src.downloader import Downloader
 
-default_sticker = (
-    "CAACAgUAAxkBAAEYpFpjOplSFK_q93KWoJKqWHGfgPMxMwACuAYAApqD2VV9UCzjLNawRCoE"
-)
 
-
-class Telegram:
+class Telegram(object):
     """Class to manage Telegram."""
 
     # noinspection IncorrectFormatting
     def __init__(
-        self,
-        chat_id: int,
+        self: Self,
         app: Client,
-        sticker_id: str,
         downloader: Downloader,
         config: UploaderConfig,
-    ):
-        self.chat_id = chat_id
+    ) -> None:
         self.app = app
-        self.sticker_id = sticker_id
         self.downloader = downloader
         self.config = config
 
     # noinspection IncorrectFormatting
     @classmethod
-    async def initialize(
-        cls, downloader: Downloader, config: UploaderConfig
-    ) -> "Telegram":
+    async def initialize(cls, downloader: Downloader, config: UploaderConfig) -> Self:
         """Initialize Telegram Connection.
 
         Args:
@@ -46,62 +37,45 @@ class Telegram:
         """
         logger.debug("Initializing Telegram connection...")
         try:
-            api_id = os.getenv("INPUT_API_ID")
-            api_hash = os.getenv(
-                "INPUT_API_HASH",
-            )
-            bot_token = os.getenv(
-                "INPUT_BOT_TOKEN",
-            )
-            str_chat_id = os.getenv("INPUT_CHAT_ID", "")
-            if not str_chat_id:
-                raise TypeError("Missing Chat ID")
-            chat_id = int(str_chat_id)
-
             app = Client(
                 "ghaction-telegram",
-                bot_token=bot_token,
-                api_id=api_id,
-                api_hash=api_hash,
+                bot_token=config.bot_token,
+                api_id=config.api_id,
+                api_hash=config.api_hash,
             )
-            sticker_id = os.getenv("INPUT_STICKER_ID", default_sticker)
-            if not sticker_id or len(sticker_id) == 0:
-                sticker_id = default_sticker
-            self = cls(chat_id, app, sticker_id, downloader, config)
+            self = cls(app, downloader, config)
             await self.app.start()
-            chat_info = await self.app.get_chat(self.chat_id)
-            self.chat_id = chat_info.id
-            return self
         except TypeError as e:
             logger.error(f"Please provide all required inputs {e}")
             sys.exit(-1)
+        else:
+            return self
 
-    async def progress(self, current: Any, total: Any) -> None:
+    async def progress(self: Self, current: Any, total: Any) -> None:
         """Report upload progress."""
         logger.debug(f"{current * 100 / total:.1f}%")
 
-    async def __upload_to_tg(self, folder: str) -> None:
-        if os.path.isdir(folder):
+    async def __upload_to_tg(self: Self, folder: str) -> None:
+        if Path(folder).is_dir():
             directory_contents = os.listdir(folder)
             logger.debug(f"Found {directory_contents}")
             directory_contents.sort()
             for single_file in directory_contents:
                 await self.__upload_to_tg(os.path.join(folder, single_file))
+        elif folder in self.downloader.downloaded_files:
+            logger.debug(f"Uploading {folder}")
+            await self.app.send_document(
+                chat_id=self.config.chat_id,
+                document=folder,
+                disable_notification=True,
+                caption=f"`{Path(folder).name}`",
+                progress=self.progress,
+            )
         else:
-            if folder in self.downloader.downloaded_files:
-                logger.debug(f"Uploading {folder}")
-                await self.app.send_document(
-                    chat_id=self.chat_id,
-                    document=folder,
-                    disable_notification=True,
-                    caption=f"`{os.path.basename(folder)}`",
-                    progress=self.progress,
-                )
-            else:
-                logger.debug(f"Skipped {folder}")
+            logger.debug(f"Skipped {folder}")
 
-    async def upload_latest(self, folder: Any) -> None:
-        """Uploaded the latest assets to telegram.
+    async def upload_latest(self: Self, folder: Any) -> None:
+        """Upload the latest assets to telegram.
 
         :param folder: Folder where assets are stored
         """
@@ -109,13 +83,13 @@ class Telegram:
         await self.__send_message()
         await self.__upload_to_tg(folder)
 
-    async def __send_sticker(self) -> None:
+    async def __send_sticker(self: Self) -> None:
         if self.config.send_sticker:
             await self.app.send_sticker(
-                chat_id=self.chat_id, sticker=self.sticker_id, disable_notification=True
+                chat_id=self.config.chat_id, sticker=self.config.sticker_id, disable_notification=True
             )
 
-    async def __send_message(self) -> None:
+    async def __send_message(self: Self) -> None:
         if self.config.send_message:
             if self.config.message and self.config.message != "":
                 message = self.config.message
@@ -124,4 +98,4 @@ class Telegram:
                 New Release(s)🥳
 See Changelog [here]({self.downloader.changes})
                 """
-            await self.app.send_message(chat_id=self.chat_id, text=message)
+            await self.app.send_message(chat_id=self.config.chat_id, text=message)
