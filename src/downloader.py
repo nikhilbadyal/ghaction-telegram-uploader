@@ -7,13 +7,13 @@ from queue import PriorityQueue
 from time import perf_counter
 from typing import Any, Dict, List, Self, Tuple
 
-import aiohttp
 import requests
 from loguru import logger
 from tqdm import tqdm
 
 from src.config import UploaderConfig, session
 from src.constant import REQUEST_TIMEOUT, temp_folder
+from src.strings import download_done, download_string
 
 
 class Downloader(object):
@@ -32,20 +32,17 @@ class Downloader(object):
     async def initialize(cls, config: UploaderConfig) -> Self:
         """Fetch the Latest Release from GitHub."""
         logger.debug("Fetching latest assets...")
-        async with (
-            aiohttp.ClientSession() as aio_session,
-            aio_session.get(config.repo_url, timeout=REQUEST_TIMEOUT) as resp,
-        ):
-            response = resp.json()
-            changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
-            if response.get("message") == "Not Found":
-                logger.info(f"No Release found in {config.repo_url}. Exiting.")
-                sys.exit(0)
-            changes = changelog_response.get("html_url")
-            return cls(response, changes, config)
+        response = requests.get(config.repo_url, timeout=REQUEST_TIMEOUT).json()
+        logger.debug(f"Got {response} from GitHub Fetching")
+        changelog_response = requests.get(config.changelog_url, timeout=REQUEST_TIMEOUT).json()
+        if response.get("message") == "Not Found":
+            logger.info(f"No Release found in {config.repo_url}. Exiting.")
+            sys.exit(0)
+        changes = changelog_response.get("html_url")
+        return cls(response, changes, config)
 
     def __download(self: Self, assets_url: str, file_name: str) -> None:
-        logger.debug(f"Trying to download {file_name} from {assets_url}")
+        logger.debug(download_string.format(file_name, assets_url))
         self._QUEUE_LENGTH += 1
         start = perf_counter()
         resp = session.get(assets_url, stream=True)
@@ -65,7 +62,7 @@ class Downloader(object):
                 size = dl_file.write(chunk)
                 bar.update(size)
         self._QUEUE.put((perf_counter() - start, file_name))
-        logger.debug(f"Downloaded {file_name}")
+        logger.debug(download_done.format(file_name))
 
     def __download_assets(self: Self, asset_url: str, file_name: str) -> None:
         self.__download(asset_url, file_name=file_name)
