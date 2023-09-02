@@ -2,10 +2,7 @@ version: "3.9"
 
 services:
   revanced:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: revanced
+    image: nikhilbadyal/ghaction-telegram-uploader
     container_name: revanced
     volumes:
       - .:/app:z
