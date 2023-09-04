@@ -49,6 +49,8 @@ class Downloader(object):
                 unit_divisor=1024,
                 colour="green",
             )
+            if not temp_folder.exists():
+                temp_folder.mkdir(parents=True)
             with self.config.temp_folder.joinpath(file_name).open("wb") as dl_file, bar:
                 async for chunk in response.content.iter_any():
                     size = dl_file.write(chunk)
@@ -76,7 +78,7 @@ class Downloader(object):
                 Downloader.fetch_json(session, config.repo_url), Downloader.fetch_json(session, config.changelog_url)
             )
             if response_json.get("message") == not_found:
-                raise ReleaseNotFoundError(no_release_found, url=config.repo_url)
+                raise ReleaseNotFoundError(no_release_found.format(config.repo_url), url=config.repo_url)
             changes = changelog_response_json.get("html_url")
             return cls(response_json, changes, config)
 
