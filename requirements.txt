@@ -1,7 +1,7 @@
 aiohttp==3.8.5
 environs==9.5.0
 loguru==0.7.0
-pre-commit==3.3.3
+pre-commit==3.4.0
 pyrogram==2.0.106
 requests==2.31.0
 TgCrypto==1.2.5
