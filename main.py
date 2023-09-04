@@ -12,7 +12,6 @@ from src.telegram import Telegram
 async def main() -> None:
     """Entrypoint."""
     env = Env()
-    env.read_env(".env")
     config = UploaderConfig(env)
     downloader = await Downloader.initialize(config)
     await downloader.download_latest(config)
