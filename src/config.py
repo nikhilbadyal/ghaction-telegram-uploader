@@ -16,8 +16,8 @@ class UploaderConfig(object):
     def __init__(self: Self, env: Env) -> None:
         self.env = env
         self.assets_pattern = env.str("INPUT_ASSETS_PATTERN", ".*")
-        self.send_message = env.bool("INPUT_SEND_MESSAGE", True)
-        self.send_sticker = env.bool("INPUT_SEND_STICKER", False)
+        self.send_message = bool(env.str("INPUT_SEND_MESSAGE", True))
+        self.send_sticker = bool(env.str("INPUT_SEND_STICKER", False))
         self.message = env.str("INPUT_MESSAGE", None)
         self.sticker_id = env.str("INPUT_STICKER_ID", default_sticker)
         self.chat_id = env.int("INPUT_CHAT_ID")
