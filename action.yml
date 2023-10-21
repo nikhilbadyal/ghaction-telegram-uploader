@@ -26,12 +26,6 @@ inputs:
   ASSETS_PATTERN:
     required: false
     description: 'Regex for Asset name match'
-  SEND_MESSAGE:
-    required: false
-    description: 'Send Message'
-  SEND_STICKER:
-    required: false
-    description: 'Send Sticker'
   MESSAGE:
     required: false
     description: 'Message to send'

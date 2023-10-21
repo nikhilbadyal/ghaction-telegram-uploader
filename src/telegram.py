@@ -76,18 +76,17 @@ class Telegram(object):
         await self.__upload_to_tg(folder)
 
     async def __send_sticker(self: Self) -> None:
-        if self.config.send_sticker:
+        if self.config.sticker_id:
             await self.app.send_sticker(
                 chat_id=self.config.chat_id, sticker=self.config.sticker_id, disable_notification=True
             )
 
     async def __send_message(self: Self) -> None:
-        if self.config.send_message:
-            if self.config.message and self.config.message != "":
-                message = self.config.message
-            else:
-                message = f"""
-                New Release(s)🥳
+        if self.config.message:
+            message = self.config.message
+        else:
+            message = f"""
+            New Release(s)🥳
 See Changelog [here]({self.downloader.changes})
-                """
-            await self.app.send_message(chat_id=self.config.chat_id, text=message)
+            """
+        await self.app.send_message(chat_id=self.config.chat_id, text=message)
