@@ -1,5 +1,5 @@
 aiohttp==3.9.1
-environs==10.0.0
+environs==10.1.0
 loguru==0.7.2
 pre-commit==3.6.0
 pyrogram==2.0.106
