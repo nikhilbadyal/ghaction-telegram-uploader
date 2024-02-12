@@ -1,4 +1,5 @@
 """Common constants."""
+
 from pathlib import Path
 
 REQUEST_TIMEOUT = 60

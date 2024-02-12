@@ -1,4 +1,5 @@
 """Env Configurations."""
+
 from pathlib import Path
 from typing import Self
 

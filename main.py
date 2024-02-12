@@ -1,4 +1,5 @@
 """Entrypoint file."""
+
 import asyncio
 
 from environs import Env
