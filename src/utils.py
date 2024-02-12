@@ -1,4 +1,5 @@
 """Common utilities."""
+
 from requests import Response
 
 from src.constant import status_code_200
