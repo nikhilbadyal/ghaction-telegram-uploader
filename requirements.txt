@@ -3,6 +3,6 @@ environs==11.0.0
 loguru==0.7.2
 pre-commit==3.7.0
 pyrogram==2.0.106
-requests==2.31.0
+requests==2.32.3
 TgCrypto==1.2.5
 tqdm==4.66.2
