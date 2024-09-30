@@ -31,7 +31,7 @@ class RequestError(UploaderError):
                 url (str, optional): The URL of the failed icon scraping. Defaults to None.
         """
         super().__init__(*args)
-        self.url = kwargs.get("url", None)
+        self.url = kwargs.get("url")
 
     def __str__(self: Self) -> str:
         """Exception message."""
