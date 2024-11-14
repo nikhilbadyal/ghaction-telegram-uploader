@@ -1,4 +1,4 @@
-aiohttp==3.10.10
+aiohttp==3.11.0
 environs==11.1.0
 loguru==0.7.2
 pre-commit==4.0.1
