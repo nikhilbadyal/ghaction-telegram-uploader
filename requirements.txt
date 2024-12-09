@@ -1,6 +1,6 @@
 aiohttp==3.11.10
 environs==11.2.1
-loguru==0.7.2
+loguru==0.7.3
 pre-commit==4.0.1
 pyrogram==2.0.106
 requests==2.32.3
