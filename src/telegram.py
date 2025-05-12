@@ -1,6 +1,5 @@
 """Telegram Bridge."""
 
-import os
 from pathlib import Path
 from typing import Any, Self
 
@@ -52,18 +51,17 @@ class Telegram(object):
         logger.debug(f"{current * 100 / total:.1f}%")
 
     async def __upload_to_tg(self: Self, folder: str) -> None:
-        if Path(folder).is_dir():
-            directory_contents = os.listdir(folder)
-            directory_contents.sort()
-            for single_file in directory_contents:
-                await self.__upload_to_tg(os.path.join(folder, single_file))
-        elif folder in self.downloader.downloaded_files:
-            logger.debug(uploading.format(Path(folder).name))
+        path = Path(folder)
+        if path.is_dir():
+            for child in sorted(path.iterdir()):
+                await self.__upload_to_tg(str(child))
+        elif str(path) in self.downloader.downloaded_files:
+            logger.debug(uploading.format(path.name))
             await self.app.send_document(
                 chat_id=self.config.chat_id,
-                document=folder,
+                document=str(path),
                 disable_notification=True,
-                caption=f"`{Path(folder).name}`",
+                caption=f"`{path.name}`",
                 progress=self.progress,
             )
 

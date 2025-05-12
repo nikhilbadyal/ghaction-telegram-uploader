@@ -4,7 +4,7 @@ import asyncio
 import re
 from queue import PriorityQueue
 from time import perf_counter
-from typing import Any, Dict, List, Self, Tuple
+from typing import Any, Self
 
 import aiohttp
 from aiohttp import ClientSession
@@ -20,12 +20,12 @@ from src.strings import downloaded_all, fetching_assets, no_release_found, no_ur
 class Downloader(object):
     """Downloader."""
 
-    def __init__(self: Self, response: Dict[Any, Any], changes: str, config: UploaderConfig) -> None:
+    def __init__(self: Self, response: dict[Any, Any], changes: str, config: UploaderConfig) -> None:
         self._CHUNK_SIZE = 10485760
-        self._QUEUE: PriorityQueue[Tuple[float, str]] = PriorityQueue()
+        self._QUEUE: PriorityQueue[tuple[float, str]] = PriorityQueue()
         self._QUEUE_LENGTH = 0
         self.response = response
-        self.downloaded_files: List[str] = []
+        self.downloaded_files: list[str] = []
         self.changes = changes
         self.config = config
 
@@ -86,8 +86,8 @@ class Downloader(object):
     async def download_latest(self: Self, config: UploaderConfig) -> None:
         """Download all latest assets :return: List of downloaded assets."""
         assets_from_api = self.response["assets"]
-        matched_assets: List[Tuple[Any, Any]] = []
-        all_assets: List[Tuple[Any, Any]] = []
+        matched_assets: list[tuple[Any, Any]] = []
+        all_assets: list[tuple[Any, Any]] = []
         for asset in assets_from_api:
             asset_url = asset["browser_download_url"]
             app_name = asset["name"]
