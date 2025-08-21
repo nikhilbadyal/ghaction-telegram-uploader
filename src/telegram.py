@@ -4,11 +4,25 @@ from pathlib import Path
 from typing import Any, Self
 
 from loguru import logger
-from pyrogram import Client
+from pyrogram import Client, utils
 
 from src.config import UploaderConfig
 from src.downloader.download import Downloader
 from src.strings import initializing_connection, project_name, uploading
+
+
+def get_peer_type_new(peer_id: int) -> str:
+    """Get the type of the peer based on its ID."""
+    peer_id_str = str(peer_id)
+    if not peer_id_str.startswith("-"):
+        return "user"
+    elif peer_id_str.startswith("-100"):  # noqa: RET505
+        return "channel"
+    else:
+        return "chat"
+
+
+utils.get_peer_type = get_peer_type_new
 
 
 class Telegram(object):
@@ -44,6 +58,8 @@ class Telegram(object):
         )
         self = cls(app, downloader, config)
         await self.app.start()
+        print(await app.get_chat(config.chat_id))
+        print("Channel initialized successfully.")
         return self
 
     async def progress(self: Self, current: Any, total: Any) -> None:
